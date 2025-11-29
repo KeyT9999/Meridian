@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Wand2, Copy, RefreshCw, Send, Loader2, Save } from 'lucide-react';
+import { Wand2, Copy, RefreshCw, Send, Loader2, Save, ShieldCheck } from 'lucide-react';
 import { generateMarketingContent } from '../services/geminiService';
 import { ContentConfig, SavedItem } from '../types';
 
@@ -17,7 +17,8 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ initialTopic = '' }
     tone: 'Enthusiastic',
     format: 'Twitter Thread',
     topic: '',
-    keyPoints: ''
+    keyPoints: '',
+    complianceMode: true
   });
   
   const [generatedContent, setGeneratedContent] = useState('');
@@ -190,6 +191,29 @@ const ContentGenerator: React.FC<ContentGeneratorProps> = ({ initialTopic = '' }
               <option>LinkedIn Post</option>
               <option>Blog Post Outline</option>
             </select>
+          </div>
+
+          <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+            <div className="flex items-center gap-2">
+              <ShieldCheck size={16} className={config.complianceMode ? 'text-emerald-400' : 'text-slate-500'} />
+              <div>
+                <p className="text-xs text-slate-200 font-semibold">High Compliance Mode</p>
+                <p className="text-[11px] text-slate-500">Avoid financial advice language, auto-add disclaimer.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setConfig(prev => ({ ...prev, complianceMode: !prev.complianceMode }))}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                config.complianceMode ? 'bg-emerald-500/80' : 'bg-slate-700'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                  config.complianceMode ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
           </div>
         </div>
 

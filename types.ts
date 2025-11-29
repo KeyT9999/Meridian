@@ -26,6 +26,7 @@ export interface ContentConfig {
   format: string;
   topic: string;
   keyPoints: string;
+  complianceMode?: boolean;
 }
 
 export interface VerificationResult {

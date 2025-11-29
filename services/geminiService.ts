@@ -142,7 +142,12 @@ export const fetchCryptoTrends = async (): Promise<TrendItem[]> => {
  */
 export const generateMarketingContent = async (config: ContentConfig): Promise<string> => {
   try {
-    const prompt = `
+    const formatLower = (config.format || '').toLowerCase();
+    const isTwitter = formatLower.includes('twitter') || formatLower.includes('tweet');
+    const isLinkedIn = formatLower.includes('linkedin');
+    const isBlogLike = formatLower.includes('blog');
+
+    const basePrompt = `
       You are an expert Web3 Marketing Agent named Meridian.
       
       Task: Generate content based on the following parameters:
@@ -151,12 +156,56 @@ export const generateMarketingContent = async (config: ContentConfig): Promise<s
       - Tone: ${config.tone}
       - Format: ${config.format}
       - Key Points to Include: ${config.keyPoints}
+    `;
 
-      Constraint:
+    const complianceBlock = config.complianceMode
+      ? `
+      Compliance constraints:
+      - Do NOT give financial advice or make guaranteed return claims.
+      - Avoid phrases like "guaranteed profit", "risk-free", "you should buy".
+      - Add a short, neutral disclaimer at the end noting that this is not investment advice.
+      `
+      : '';
+
+    const seoBlock = isBlogLike || isLinkedIn
+      ? `
+      SEO & structure requirements:
+      - Start with a single sentence "Meta description" (140-160 characters) that summarizes the article.
+      - Then include a clear H1 title for the article using the main keyword (e.g. "Bitcoin Soars Above $92,000 as Fed Liquidity Fuels Crypto Market Confidence").
+      - Use H2 / H3 style subheadings to break sections, and include secondary keywords like "Bitcoin price rally", "macro tailwinds", "crypto bull market", "institutional adoption" where relevant.
+      - In the body, bold 2-4 important keyword phrases that matter for search (e.g. **Bitcoin price**, **macro tailwinds**, **crypto market confidence**).
+      - Suggest at least one external link placeholder to a credible data source (e.g. [External chart / news source]) and one internal link placeholder (e.g. [See our latest market dashboard]).
+      `
+      : '';
+
+    const hashtagBlock = isTwitter
+      ? `
+      Hashtags:
+      - At the very end, add a separate line with 5-8 relevant hashtags optimized for X (Twitter), mixing broad tags (#Bitcoin, #Crypto, #Web3) and contextual tags (#Fed, #Macro, #DigitalAssets, #MarketInsights, #BullMarket). 
+      `
+      : isLinkedIn
+      ? `
+      Hashtags:
+      - At the very end, add a separate line with 3-6 professional hashtags optimized for LinkedIn (e.g. #Bitcoin #Crypto #Web3 #DigitalAssets #Macro #MarketInsights).
+      `
+      : `
+      Hashtags:
+      - Do not include hashtags unless explicitly asked in the topic or key points.
+      `;
+
+    const prompt = `
+      ${basePrompt}
+
+      ${complianceBlock}
+
+      ${seoBlock}
+
+      General constraints:
       - Use crypto-native terminology where appropriate (e.g., alpha, wagmi, liquidity, bearish/bullish) but keep it readable.
-      - If the format is "Twitter Thread", separate tweets with "---".
+      - If the format is "Twitter Thread", separate tweets with "---" and keep each tweet concise and scannable.
       - Ensure the content is engaging and optimized for high social media engagement.
-      - Do not include hashtags unless asked.
+
+      ${hashtagBlock}
     `;
 
     const response = await callGemini(GENERATION_MODEL, {
